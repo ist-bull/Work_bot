@@ -18,6 +18,8 @@ from telegram.helpers import escape_markdown
 load_dotenv()
 
 TELEGRAM_BOT_TOKEN = os.environ["TELEGRAM_BOT_TOKEN"].strip().strip("\"'")
+if TELEGRAM_BOT_TOKEN.startswith("TELEGRAM_BOT_TOKEN="):
+    TELEGRAM_BOT_TOKEN = TELEGRAM_BOT_TOKEN.split("=", 1)[1].strip().strip("\"'")
 DATABASE_URL = os.environ["DATABASE_URL"]  # postgresql://user:pass@host:5432/dbname
 DB_POOL_MIN_CONNECTIONS = int(os.getenv("DB_POOL_MIN_CONNECTIONS", "1"))
 DB_POOL_MAX_CONNECTIONS = int(os.getenv("DB_POOL_MAX_CONNECTIONS", "5"))
