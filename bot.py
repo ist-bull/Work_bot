@@ -1,7 +1,6 @@
 import logging
 import os
 import random
-import re
 import string
 from contextlib import contextmanager
 from datetime import datetime, timedelta, timezone
@@ -30,16 +29,10 @@ logging.basicConfig(
     level=logging.INFO,
 )
 logger = logging.getLogger(__name__)
+logging.getLogger("httpx").setLevel(logging.WARNING)
+logging.getLogger("telegram.ext.Application").setLevel(logging.INFO)
 
 db_pool: ThreadedConnectionPool | None = None
-token_pattern = re.compile(r"^\d+:[A-Za-z0-9_-]{35}$")
-logger.info(
-    "Telegram token loaded: length=%s valid_format=%s prefix=%s suffix=%s",
-    len(TELEGRAM_BOT_TOKEN),
-    bool(token_pattern.match(TELEGRAM_BOT_TOKEN)),
-    TELEGRAM_BOT_TOKEN[:4],
-    TELEGRAM_BOT_TOKEN[-4:] if len(TELEGRAM_BOT_TOKEN) >= 4 else "",
-)
 notification_bot = Bot(token=TELEGRAM_BOT_TOKEN)
 
 
@@ -169,14 +162,14 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         code = create_link_code(chat_id)
     except Exception:
         logger.exception("Telegram link code could not be saved for chat_id=%s", chat_id)
-        await update.message.reply_text("Bir hata oluştu, lütfen tekrar deneyin.")
+        await update.message.reply_text("Xatolik yuz berdi, iltimos qayta urinib ko'ring.")
         return
 
     logger.info("Telegram link code created for chat_id=%s", chat_id)
     await update.message.reply_text(
-        f"Hoş geldiniz! Sistemdeki profil sayfanıza bu kodu girin:\n\n"
+        f"Xush kelibsiz! Tizimdagi profil sahifangizga ushbu kodni kiriting:\n\n"
         f"🔑 {code}\n\n"
-        f"Kod 10 dakika geçerlidir."
+        f"Kod 10 daqiqa davomida amal qiladi."
     )
 
 
@@ -190,13 +183,13 @@ async def status(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         linked = is_chat_linked(chat_id)
     except Exception:
         logger.exception("Telegram link status could not be checked for chat_id=%s", chat_id)
-        await update.message.reply_text("Bir hata oluştu, lütfen tekrar deneyin.")
+        await update.message.reply_text("Xatolik yuz berdi, iltimos qayta urinib ko'ring.")
         return
 
     if linked:
-        await update.message.reply_text("Hesabınız zaten bağlı.")
+        await update.message.reply_text("Hisobingiz allaqachon ulangan.")
     else:
-        await update.message.reply_text("Hesabınız henüz bağlı değil.")
+        await update.message.reply_text("Hisobingiz hali ulanmagan.")
 
 
 async def send_task_notification(
@@ -206,16 +199,16 @@ async def send_task_notification(
     notification_type: Literal["new_task", "deadline_reminder"],
 ) -> bool:
     if notification_type == "new_task":
-        title = "🆕 *Yeni görev atandı*"
+        title = "🆕 *Yangi topshiriq*"
     elif notification_type == "deadline_reminder":
-        title = "⚠️ *Son tarih hatırlatması*"
+        title = "⚠️ *Muddat eslatmasi*"
     else:
         raise ValueError(f"Unsupported notification_type: {notification_type}")
 
     message = (
         f"{title}\n\n"
-        f"*Görev:* {escape_markdown(task_title)}\n"
-        f"*Son tarih:* {escape_markdown(deadline)}"
+        f"📋 *Topshiriq:* {escape_markdown(task_title)}\n"
+        f"📅 *Muddat:* {escape_markdown(deadline)}"
     )
 
     try:
@@ -250,7 +243,7 @@ def main() -> None:
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler(["durum", "status"], status))
 
-    logger.info("Bot çalışıyor...")
+    logger.info("Bot ishlayapti...")
     try:
         app.run_polling()
     finally:
