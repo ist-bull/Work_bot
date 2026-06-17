@@ -1,6 +1,7 @@
 import logging
 import os
 import random
+import re
 import string
 from contextlib import contextmanager
 from datetime import datetime, timedelta, timezone
@@ -31,6 +32,14 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 db_pool: ThreadedConnectionPool | None = None
+token_pattern = re.compile(r"^\d+:[A-Za-z0-9_-]{35}$")
+logger.info(
+    "Telegram token loaded: length=%s valid_format=%s prefix=%s suffix=%s",
+    len(TELEGRAM_BOT_TOKEN),
+    bool(token_pattern.match(TELEGRAM_BOT_TOKEN)),
+    TELEGRAM_BOT_TOKEN[:4],
+    TELEGRAM_BOT_TOKEN[-4:] if len(TELEGRAM_BOT_TOKEN) >= 4 else "",
+)
 notification_bot = Bot(token=TELEGRAM_BOT_TOKEN)
 
 
